@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITI Certificate Generator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); 
+            min-height: 100vh; 
+            padding: 20px; 
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .form-container { background: white; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; }
+        .header h1 { font-size: 32px; margin-bottom: 8px; }
+        .header p { opacity: 0.95; font-size: 12px; letter-spacing: 0.5px; }
+        .form-content { padding: 40px; }
+        .section { margin-bottom: 40px; }
+        .section-title { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; font-size: 18px; font-weight: 600; color: #333; }
+        .section-number { background: #ede7f6; color: #764ba2; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .logo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .logo-upload { 
+            border: 2px dashed #ddd; 
+            border-radius: 10px; 
+            padding: 30px; 
+            text-align: center; 
+            cursor: pointer; 
+            transition: all 0.3s; 
+            position: relative; 
+            min-height: 150px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        .logo-upload:hover { border-color: #764ba2; background: #f5f3ff; }
+        .logo-upload.has-image { border-color: #764ba2; background: #ede7f6; }
+        .logo-upload input { display: none; }
+        .logo-preview { max-width: 100%; max-height: 100px; object-fit: contain; }
+        .upload-icon { font-size: 40px; color: #999; margin-bottom: 10px; }
+        .upload-text { font-size: 13px; color: #666; font-weight: 500; }
+        .clear-logo { 
+            position: absolute; 
+            top: 10px; 
+            right: 10px; 
+            background: #f44336; 
+            color: white; 
+            border: none; 
+            width: 24px; 
+            height: 24px; 
+            border-radius: 50%; 
+            cursor: pointer; 
+            font-size: 16px; 
+            line-height: 1; 
+            display: none; 
+        }
+        .logo-upload.has-image .clear-logo { display: block; }
+        .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-size: 14px; font-weight: 500; color: #555; margin-bottom: 8px; }
+        .form-group input, .form-group select { 
+            padding: 12px 16px; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            font-size: 14px; 
+            transition: all 0.3s; 
+        }
+        .form-group input:focus, .form-group select:focus { 
+            outline: none; 
+            border-color: #764ba2; 
+            box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.1); 
+        }
+        .button-container { text-align: center; margin-top: 40px; }
+        .btn-preview { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            border: none; 
+            padding: 16px 50px; 
+            font-size: 18px; 
+            font-weight: 600; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            box-shadow: 0 4px 15px rgba(118, 75, 162, 0.3); 
+            transition: all 0.3s; 
+        }
+        .btn-preview:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 6px 20px rgba(118, 75, 162, 0.4); 
+        }
+        .preview-container { display: none; background: #1a1a1a; min-height: 100vh; padding: 30px 20px; }
+        .preview-container.active { display: block; }
+        .preview-actions { text-align: center; margin-bottom: 30px; }
+        .btn-back, .btn-download { 
+            padding: 12px 30px; 
+            font-size: 16px; 
+            font-weight: 600; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            margin: 0 10px; 
+            transition: all 0.3s; 
+        }
+        .btn-back { background: #555; color: white; }
+        .btn-back:hover { background: #444; }
+        .btn-download { background: #764ba2; color: white; }
+        .btn-download:hover { background: #5e3a7f; }
+        .certificate { 
+            width: 297mm; 
+            height: 210mm; 
+            background: white; 
+            margin: 0 auto; 
+            position: relative; 
+            box-shadow: 0 10px 50px rgba(0,0,0,0.3); 
+        }
+        .certificate-border { 
+            position: absolute; 
+            top: 8mm; 
+            left: 8mm; 
+            right: 8mm; 
+            bottom: 8mm; 
+            border: 4px solid transparent;
+            border-image: linear-gradient(135deg, #d4af37 0%, #1e3a8a 50%, #d4af37 100%);
+            border-image-slice: 1;
+            border-radius: 4px; 
+        }
+        .certificate-inner-border { 
+            position: absolute; 
+            top: 3mm; 
+            left: 3mm; 
+            right: 3mm; 
+            bottom: 3mm; 
+            border: 2px solid transparent;
+            border-image: linear-gradient(135deg, #d4af37 0%, #1e3a8a 50%, #d4af37 100%);
+            border-image-slice: 1;
+        }
+        .corner-ornament {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border: 3px solid #d4af37;
+        }
+        .corner-ornament.top-left { top: 12mm; left: 12mm; border-right: none; border-bottom: none; }
+        .corner-ornament.top-right { top: 12mm; right: 12mm; border-left: none; border-bottom: none; }
+        .corner-ornament.bottom-left { bottom: 12mm; left: 12mm; border-right: none; border-top: none; }
+        .corner-ornament.bottom-right { bottom: 12mm; right: 12mm; border-left: none; border-top: none; }
+        .watermark { 
+            position: absolute; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%); 
+            opacity: 0.08; 
+            width: 400px; 
+            height: 400px; 
+            z-index: 0; 
+        }
+        .watermark img { width: 100%; height: 100%; object-fit: contain; }
+        .certificate-content { position: relative; z-index: 1; padding: 20mm 25mm; }
+        .certificate-header { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            margin-bottom: 8mm; 
+        }
+        .logo-left, .logo-right { width: 80px; height: 80px; flex-shrink: 0; }
+        .logo-left img, .logo-right img { width: 100%; height: 100%; object-fit: contain; }
+        .certificate-title { flex: 1; text-align: center; padding: 0 20px; }
+        .certificate-title h1 { 
+            font-size: 48px; 
+            font-weight: bold; 
+            color: #1e5631; 
+            letter-spacing: 3px; 
+            margin: 0; 
+            font-family: Georgia, serif; 
+        }
+        .certificate-subtitle { text-align: center; margin-bottom: 6mm; }
+        .certificate-subtitle h2 { 
+            font-size: 22px; 
+            letter-spacing: 6px; 
+            color: #333; 
+            font-weight: 500; 
+            margin: 0; 
+        }
+        .topper-badge { text-align: center; margin-bottom: 8mm; }
+        .topper-badge h3 { 
+            font-size: 42px; 
+            font-weight: bold; 
+            color: #1e5631; 
+            margin: 0; 
+            font-family: Georgia, serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        .star-icon {
+            color: #d4af37;
+            font-size: 48px;
+        }
+        .seal-placeholder {
+            position: absolute;
+            bottom: 20mm;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 80px;
+            border: 3px solid #d4af37;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #d4af37;
+            font-weight: bold;
+            text-align: center;
+            opacity: 0.3;
+        }
+        .permanent-watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 72px;
+            font-weight: bold;
+            color: rgba(220, 38, 38, 0.25);
+            letter-spacing: 3px;
+            white-space: nowrap;
+            z-index: 10;
+            pointer-events: none;
+            text-align: center;
+            line-height: 1.4;
+        }
+        .dev-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 12px;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            z-index: 1000;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+        .password-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        .password-modal.active {
+            display: flex;
+        }
+        .password-box {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        .password-box h2 {
+            color: #764ba2;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .password-box input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .password-box button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .password-box .cancel-btn {
+            background: #999;
+        }
+        .password-error {
+            color: #dc2626;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .certificate-body { 
+            font-size: 18px; 
+            line-height: 1.8; 
+            text-align: center; 
+            padding: 0 15mm; 
+            margin-bottom: 10mm; 
+        }
+        .certificate-body p { margin: 0 0 8mm 0; }
+        .certificate-body p:last-child { margin-bottom: 0; }
+        .candidate-name { 
+            font-family: 'Brush Script MT', cursive; 
+            font-size: 32px; 
+            font-weight: bold; 
+            color: #000; 
+            display: inline-block; 
+            margin: 0 8px; 
+        }
+        .certificate-footer { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-end; 
+            margin-top: 15mm; 
+        }
+        .footer-left { text-align: left; }
+        .footer-right { text-align: right; }
+        .footer-left p, .footer-right p { margin: 0 0 4px 0; }
+        
+        @media print {
+            body * { visibility: hidden; }
+            .certificate, .certificate * { visibility: visible; }
+            .certificate { position: fixed; left: 0; top: 0; margin: 0; box-shadow: none; }
+            .preview-actions { display: none; }
+        }
+        
+        @page { size: A4 landscape; margin: 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="formView" class="form-container">
+            <div class="header">
+                <h1>Certificate Generator for ITIs</h1>
+                <p>CertGen by Anand Kathalewar, Govt ITI Nagpur</p>
+            </div>
+            <div class="form-content">
+                <div class="section">
+                    <div class="section-title">
+                        <span class="section-number">1</span> 
+                        Upload Logos
+                    </div>
+                    <div class="logo-grid">
+                        <label class="logo-upload" id="leftLogoUpload">
+                            <input type="file" accept="image/*" id="leftLogoInput">
+                            <div class="upload-icon">UP</div>
+                            <div class="upload-text">Left Logo</div>
+                            <img class="logo-preview" id="leftLogoPreview" style="display:none;" alt="">
+                            <button class="clear-logo" type="button" id="clearLeftBtn">X</button>
+                        </label>
+                        <label class="logo-upload" id="rightLogoUpload">
+                            <input type="file" accept="image/*" id="rightLogoInput">
+                            <div class="upload-icon">UP</div>
+                            <div class="upload-text">Right Logo</div>
+                            <img class="logo-preview" id="rightLogoPreview" style="display:none;" alt="">
+                            <button class="clear-logo" type="button" id="clearRightBtn">X</button>
+                        </label>
+                        <label class="logo-upload" id="watermarkUpload">
+                            <input type="file" accept="image/*" id="watermarkInput">
+                            <div class="upload-icon">UP</div>
+                            <div class="upload-text">Watermark</div>
+                            <img class="logo-preview" id="watermarkPreview" style="display:none;" alt="">
+                            <button class="clear-logo" type="button" id="clearWatermarkBtn">X</button>
+                        </label>
+                    </div>
+                </div>
+                <div class="section">
+                    <div class="section-title">
+                        <span class="section-number">2</span> 
+                        Enter Certificate Details
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Institute Name</label>
+                            <input type="text" id="instituteName" placeholder="Sant Jagnade Maharaj Govt. ITI, Nagpur">
+                        </div>
+                        <div class="form-group">
+                            <label>Candidate Name</label>
+                            <input type="text" id="candidateName" placeholder="Raman Alone">
+                        </div>
+                        <div class="form-group">
+                            <label>Trade</label>
+                            <input type="text" id="trade" placeholder="Fitter">
+                        </div>
+                        <div class="form-group">
+                            <label>Registration Number</label>
+                            <input type="text" id="registrationNo" placeholder="R2023536554">
+                        </div>
+                        <div class="form-group">
+                            <label>Rank</label>
+                            <select id="rank">
+                                <option value="FIRST">First</option>
+                                <option value="SECOND">Second</option>
+                                <option value="THIRD">Third</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Place</label>
+                            <input type="text" id="place" value="Nagpur">
+                        </div>
+                        <div class="form-group">
+                            <label>Authority Title</label>
+                            <select id="authorityTitle">
+                                <option value="DEPUTY DIRECTOR">Deputy Director</option>
+                                <option value="PRINCIPAL">Principal</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Authority Name</label>
+                            <input type="text" id="authorityName" placeholder="Sau. Shweta Kulkarni">
+                        </div>
+                    </div>
+                </div>
+                <div class="button-container">
+                    <button class="btn-preview" type="button" id="previewBtn">Preview Certificate</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="previewView" class="preview-container">
+            <div class="preview-actions">
+                <button class="btn-back" type="button" id="backBtn">Back to Edit</button>
+                <button class="btn-download" type="button" id="downloadBtn">Download PDF</button>
+            </div>
+            <div class="certificate">
+                <div class="permanent-watermark" id="permWatermark">CertGen by<br>Anand Kathalewar</div>
+                <div class="certificate-border">
+                    <div class="certificate-inner-border"></div>
+                </div>
+                <div class="corner-ornament top-left"></div>
+                <div class="corner-ornament top-right"></div>
+                <div class="corner-ornament bottom-left"></div>
+                <div class="corner-ornament bottom-right"></div>
+                <div class="seal-placeholder">OFFICIAL SEAL</div>
+                <div class="watermark" id="watermarkContainer"></div>
+                <div class="certificate-content">
+                    <div class="certificate-header">
+                        <div class="logo-left" id="certLeftLogo"></div>
+                        <div class="certificate-title">
+                            <h1>CERTIFICATE OF MERIT</h1>
+                        </div>
+                        <div class="logo-right" id="certRightLogo"></div>
+                    </div>
+                    <div class="certificate-subtitle">
+                        <h2>CRAFTSMEN TRAINING SCHEME(CTS)</h2>
+                    </div>
+                    <div class="topper-badge">
+                        <h3>
+                            <span class="star-icon">★</span>
+                            INSTITUTE TOPPER
+                            <span class="star-icon">★</span>
+                        </h3>
+                    </div>
+                    <div class="certificate-body">
+                        <p>
+                            This is to certify that Mr/Ms 
+                            <span class="candidate-name" id="certCandidateName">Raman Alone</span>
+                        </p>
+                        <p>
+                            Regn. No. <strong style="font-size: 20px;" id="certRegNo">R2023536554</strong> from 
+                            <strong id="certInstitute">Sant Jagnade Maharaj Govt. ITI, Nagpur</strong> 
+                            has achieved the <strong style="font-size: 20px;" id="certRank">FIRST</strong> Rank
+                        </p>
+                        <p>
+                            in the <strong style="font-size: 22px;" id="certTrade">Fitter</strong> trade at Institute level 
+                            in the ALL INDIA TRADE TEST held in Aug 2025 among all the candidates of this Institute.
+                        </p>
+                    </div>
+                    <div class="certificate-footer">
+                        <div class="footer-left">
+                            <p style="font-weight: bold; font-size: 16px;">Date:</p>
+                            <p style="font-weight: bold; font-size: 16px;">Place: <span id="certPlace">Nagpur</span></p>
+                        </div>
+                        <div class="footer-right">
+                            <p style="font-weight: bold; font-size: 18px; text-transform: uppercase;" id="certAuthorityName">SAU. SHWETA KULKARNI</p>
+                            <p style="font-weight: bold; font-size: 16px;" id="certAuthorityTitle">DEPUTY DIRECTOR</p>
+                            <p style="font-size: 14px;" id="certInstituteFooter">Sant Jagnade Maharaj Govt.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dev-footer">
+        CertGen by Anand Kathalewar, Govt ITI Nagpur | 828533879
+    </div>
+
+    <div class="password-modal" id="passwordModal">
+        <div class="password-box">
+            <h2>Remove Watermark</h2>
+            <p style="color: #666; margin-bottom: 20px;">Enter password to remove watermark and download certificate</p>
+            <input type="password" id="passwordInput" placeholder="Enter Password">
+            <div class="password-error" id="passwordError"></div>
+            <div>
+                <button onclick="verifyPassword()">Verify</button>
+                <button class="cancel-btn" onclick="closePasswordModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var logosData = {
+            leftLogo: 'logo-left.png',
+            rightLogo: 'logo-right.png',
+            watermarkLogo: 'logo-watermark.png'
+        };
+
+        var MASTER_PASSWORD = 'AK@ITI2025';
+        var watermarkRemoved = false;
+
+        window.addEventListener('load', function() {
+            document.getElementById('leftLogoPreview').src = logosData.leftLogo;
+            document.getElementById('leftLogoPreview').style.display = 'block';
+            document.getElementById('leftLogoUpload').classList.add('has-image');
+            document.getElementById('leftLogoUpload').querySelector('.upload-icon').style.display = 'none';
+            document.getElementById('leftLogoUpload').querySelector('.upload-text').style.display = 'none';
+
+            document.getElementById('rightLogoPreview').src = logosData.rightLogo;
+            document.getElementById('rightLogoPreview').style.display = 'block';
+            document.getElementById('rightLogoUpload').classList.add('has-image');
+            document.getElementById('rightLogoUpload').querySelector('.upload-icon').style.display = 'none';
+            document.getElementById('rightLogoUpload').querySelector('.upload-text').style.display = 'none';
+
+            document.getElementById('watermarkPreview').src = logosData.watermarkLogo;
+            document.getElementById('watermarkPreview').style.display = 'block';
+            document.getElementById('watermarkUpload').classList.add('has-image');
+            document.getElementById('watermarkUpload').querySelector('.upload-icon').style.display = 'none';
+            document.getElementById('watermarkUpload').querySelector('.upload-text').style.display = 'none';
+        });
+
+        function handleFileUpload(inputId, previewId, uploadBoxId, logoKey) {
+            var fileInput = document.getElementById(inputId);
+            var previewImg = document.getElementById(previewId);
+            var uploadBox = document.getElementById(uploadBoxId);
+            
+            fileInput.addEventListener('change', function() {
+                var file = this.files[0];
+                if (file) {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        logosData[logoKey] = e.target.result;
+                        previewImg.src = e.target.result;
+                        previewImg.style.display = 'block';
+                        uploadBox.classList.add('has-image');
+                        uploadBox.querySelector('.upload-icon').style.display = 'none';
+                        uploadBox.querySelector('.upload-text').style.display = 'none';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        function handleClearButton(btnId, inputId, previewId, uploadBoxId, logoKey) {
+            var clearBtn = document.getElementById(btnId);
+            clearBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                logosData[logoKey] = null;
+                document.getElementById(inputId).value = '';
+                var previewImg = document.getElementById(previewId);
+                previewImg.src = '';
+                previewImg.style.display = 'none';
+                var uploadBox = document.getElementById(uploadBoxId);
+                uploadBox.classList.remove('has-image');
+                uploadBox.querySelector('.upload-icon').style.display = 'block';
+                uploadBox.querySelector('.upload-text').style.display = 'block';
+            });
+        }
+
+        handleFileUpload('leftLogoInput', 'leftLogoPreview', 'leftLogoUpload', 'leftLogo');
+        handleFileUpload('rightLogoInput', 'rightLogoPreview', 'rightLogoUpload', 'rightLogo');
+        handleFileUpload('watermarkInput', 'watermarkPreview', 'watermarkUpload', 'watermarkLogo');
+
+        handleClearButton('clearLeftBtn', 'leftLogoInput', 'leftLogoPreview', 'leftLogoUpload', 'leftLogo');
+        handleClearButton('clearRightBtn', 'rightLogoInput', 'rightLogoPreview', 'rightLogoUpload', 'rightLogo');
+        handleClearButton('clearWatermarkBtn', 'watermarkInput', 'watermarkPreview', 'watermarkUpload', 'watermarkLogo');
+
+        document.getElementById('previewBtn').addEventListener('click', function() {
+            var candidateName = document.getElementById('candidateName').value || 'Raman Alone';
+            var regNo = document.getElementById('registrationNo').value || 'R2023536554';
+            var institute = document.getElementById('instituteName').value || 'Sant Jagnade Maharaj Govt. ITI, Nagpur';
+            var rank = document.getElementById('rank').value || 'FIRST';
+            var trade = document.getElementById('trade').value || 'Fitter';
+            var place = document.getElementById('place').value || 'Nagpur';
+            var authorityName = document.getElementById('authorityName').value || 'SAU. SHWETA KULKARNI';
+            var authorityTitle = document.getElementById('authorityTitle').value || 'DEPUTY DIRECTOR';
+
+            document.getElementById('certCandidateName').textContent = candidateName;
+            document.getElementById('certRegNo').textContent = regNo;
+            document.getElementById('certInstitute').textContent = institute;
+            document.getElementById('certRank').textContent = rank;
+            document.getElementById('certTrade').textContent = trade;
+            document.getElementById('certPlace').textContent = place;
+            document.getElementById('certAuthorityName').textContent = authorityName;
+            document.getElementById('certAuthorityTitle').textContent = authorityTitle;
+            document.getElementById('certInstituteFooter').textContent = institute;
+
+            var leftLogoDiv = document.getElementById('certLeftLogo');
+            var rightLogoDiv = document.getElementById('certRightLogo');
+            var watermarkDiv = document.getElementById('watermarkContainer');
+
+            leftLogoDiv.innerHTML = '';
+            rightLogoDiv.innerHTML = '';
+            watermarkDiv.innerHTML = '';
+
+            if (logosData.leftLogo) {
+                var leftImg = document.createElement('img');
+                leftImg.src = logosData.leftLogo;
+                leftImg.style.width = '100%';
+                leftImg.style.height = '100%';
+                leftImg.style.objectFit = 'contain';
+                leftLogoDiv.appendChild(leftImg);
+            }
+
+            if (logosData.rightLogo) {
+                var rightImg = document.createElement('img');
+                rightImg.src = logosData.rightLogo;
+                rightImg.style.width = '100%';
+                rightImg.style.height = '100%';
+                rightImg.style.objectFit = 'contain';
+                rightLogoDiv.appendChild(rightImg);
+            }
+
+            if (logosData.watermarkLogo) {
+                var watermarkImg = document.createElement('img');
+                watermarkImg.src = logosData.watermarkLogo;
+                watermarkImg.style.width = '100%';
+                watermarkImg.style.height = '100%';
+                watermarkImg.style.objectFit = 'contain';
+                watermarkDiv.appendChild(watermarkImg);
+            }
+
+            document.getElementById('formView').style.display = 'none';
+            document.getElementById('previewView').classList.add('active');
+            document.body.style.background = '#1a1a1a';
+        });
+
+        document.getElementById('backBtn').addEventListener('click', function() {
+            document.getElementById('formView').style.display = 'block';
+            document.getElementById('previewView').classList.remove('active');
+            document.body.style.background = 'linear-gradient(135deg, #e8f5e9 0%, #ffffff 50%, #e3f2fd 100%)';
+        });
+
+        document.getElementById('downloadBtn').addEventListener('click', function() {
+            if (!watermarkRemoved) {
+                document.getElementById('passwordModal').classList.add('active');
+            } else {
+                window.print();
+            }
+        });
+
+        function verifyPassword() {
+            var enteredPassword = document.getElementById('passwordInput').value;
+            if (enteredPassword === MASTER_PASSWORD) {
+                watermarkRemoved = true;
+                document.getElementById('permWatermark').style.display = 'none';
+                document.getElementById('passwordModal').classList.remove('active');
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('passwordError').textContent = '';
+                window.print();
+            } else {
+                document.getElementById('passwordError').textContent = 'Incorrect password! Contact Anand KATHALEWAR 8208533879 for access.';
+            }
+        }
+
+        function closePasswordModal() {
+            document.getElementById('passwordModal').classList.remove('active');
+            document.getElementById('passwordInput').value = '';
+            document.getElementById('passwordError').textContent = '';
+        }
+
+        document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                verifyPassword();
+            }
+        });
+    </script>
+</body>
+</html>
